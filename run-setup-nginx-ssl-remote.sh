@@ -1,0 +1,26 @@
+#!/bin/bash
+# Run nginx+SSL setup on EC2 from this PC
+# Usage: ./run-setup-nginx-ssl-remote.sh [domain_or_ip] [email]
+
+set -e
+
+: "${EC2_HOST:?EC2_HOST is not set. Please set it in ~/.bashrc}"
+KEY_FILE="${KEY_FILE:-${HOME}/.ssh/lamvuonshop.pem}"
+REMOTE_DIR="${REMOTE_DIR:-$(pwd)}"
+APP_IP="${APP_IP:-${EC2_HOST#*@}}"
+DOMAIN="${1:-${APP_IP}}"
+EMAIL="${2:-lamvuon.shop@gmail.com}"
+
+echo "📦 Syncing scripts to EC2..."
+echo "Using EC2_HOST=$EC2_HOST"
+echo "Using REMOTE_DIR=$REMOTE_DIR"
+echo "Using DOMAIN=$DOMAIN"
+rsync -avz -e "ssh -i $KEY_FILE" \
+  --filter=':- .gitignore' \
+  --exclude '.git' \
+  ./setup-nginx-ssl.sh $EC2_HOST:$REMOTE_DIR/
+
+echo "🔗 Running setup-nginx-ssl.sh on EC2..."
+ssh -i $KEY_FILE $EC2_HOST "cd $REMOTE_DIR && chmod +x setup-nginx-ssl.sh && ./setup-nginx-ssl.sh $DOMAIN $EMAIL"
+
+echo "✅ Done."

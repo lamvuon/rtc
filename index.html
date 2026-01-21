@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediaSoup WebRTC Viewer</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #1a1a1a;
+      color: #fff;
+    }
+    #container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      color: #4CAF50;
+    }
+    #videoContainer {
+      position: relative;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 20px 0;
+    }
+    video {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    #status {
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .connecting { background: #ff9800; }
+    .connected { background: #4CAF50; }
+    .error { background: #f44336; }
+    #info {
+      background: #333;
+      padding: 15px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h1>🎥 MediaSoup WebRTC Live Stream</h1>
+    
+    <div id="status" class="connecting">Đang kết nối...</div>
+    
+    <div id="videoContainer">
+      <video id="video" autoplay playsinline controls></video>
+    </div>
+    
+    <div id="info">
+      <div>📡 WebSocket: <span id="wsStatus">Đang kết nối...</span></div>
+      <div>🎬 Video: <span id="videoStatus">Chờ stream...</span></div>
+      <div>📊 Stats: <span id="stats">-</span></div>
+    </div>
+  </div>
+
+  <script src="/public/mediasoup-client.js"></script>
+  <script>
+    const video = document.getElementById('video');
+    const statusDiv = document.getElementById('status');
+    const wsStatus = document.getElementById('wsStatus');
+    const videoStatus = document.getElementById('videoStatus');
+    const statsSpan = document.getElementById('stats');
+
+    let device;
+    let transport;
+    let videoConsumer;
+    let audioConsumer;
+    let videoProducerId;
+    let audioProducerId;
+    let isTransportConnecting = false;
+
+    function connectWebSocket() {
+      // Use wss when page is loaded via https to avoid mixed-content
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+      const ws = new WebSocket(`${wsProtocol}://${window.location.host}`);
+
+      ws.onopen = async () => {
+        console.log('✅ WebSocket connected');
+        wsStatus.textContent = '✅ Đã kết nối';
+        statusDiv.textContent = 'Đang tải mediasoup...';
+        
+        try {
+          // Load mediasoup device - access from window global
+          device = new window.mediasoupClient.Device();
+
+          // Get router RTP capabilities
+          ws.send(JSON.stringify({ type: 'getRouterRtpCapabilities' }));
+
+        } catch (error) {
+          console.error('❌ Error:', error);
+          statusDiv.textContent = 'Lỗi: ' + error.message;
+          statusDiv.className = 'error';
+        }
+      };
+
+    ws.onmessage = async (event) => {
+      const data = JSON.parse(event.data);
+      console.log('📩 Received:', data.type);
+
+      try {
+        switch (data.type) {
+          case 'routerRtpCapabilities':
+            // Load device with router capabilities
+            await device.load({ routerRtpCapabilities: data.data });
+            console.log('✅ Device loaded');
+            
+            statusDiv.textContent = 'Đang tạo transport...';
+            
+            // Request producer IDs
+            ws.send(JSON.stringify({ type: 'getProducers' }));
+            break;
+          
+          case 'producers':
+            // Store producer IDs
+            videoProducerId = data.data.videoProducerId;
+            audioProducerId = data.data.audioProducerId;
+            console.log('✅ Got producer IDs');
+            
+            // Request transport creation
+            ws.send(JSON.stringify({ type: 'createTransport' }));
+            break;
+
+          case 'transportCreated':
+            // Create receive transport
+            transport = device.createRecvTransport(data.data);
+            
+            transport.on('connect', async ({ dtlsParameters }, callback, errback) => {
+              console.log('🔗 Transport connecting...');
+              
+              // Prevent multiple connect calls
+              if (isTransportConnecting) {
+                console.log('⚠️ Transport already connecting, skipping...');
+                return;
+              }
+              
+              isTransportConnecting = true;
+              
+              try {
+                ws.send(JSON.stringify({
+                  type: 'connectTransport',
+                  dtlsParameters
+                }));
+                
+                // Wait for server response
+                await new Promise((resolve, reject) => {
+                  const timeout = setTimeout(() => {
+                    reject(new Error('Transport connect timeout'));
+                  }, 5000);
+                  
+                  const connectListener = (event) => {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'transportConnected') {
+                      clearTimeout(timeout);
+                      ws.removeEventListener('message', connectListener);
+                      resolve();
+                    }
+                  };
+                  ws.addEventListener('message', connectListener);
+                });
+                
+                callback();
+              } catch (error) {
+                console.error('❌ Transport connect error:', error);
+                errback(error);
+              }
+            });
+
+            console.log('✅ Transport created');
+            statusDiv.textContent = 'Đang yêu cầu video & audio...';
+            
+            // Request to consume video
+            ws.send(JSON.stringify({
+              type: 'consume',
+              producerId: videoProducerId,
+              rtpCapabilities: device.rtpCapabilities
+            }));
+            
+            // Request to consume audio
+            ws.send(JSON.stringify({
+              type: 'consume',
+              producerId: audioProducerId,
+              rtpCapabilities: device.rtpCapabilities
+            }));
+            break;
+
+          case 'transportConnected':
+            console.log('✅ Transport connected');
+            break;
+
+          case 'consumed':
+            // Create consumer
+            const consumer = await transport.consume({
+              id: data.data.id,
+              producerId: data.data.producerId,
+              kind: data.data.kind,
+              rtpParameters: data.data.rtpParameters
+            });
+
+            console.log(`✅ ${data.data.kind} consumer created:`, consumer.id);
+            
+            // Store consumers
+            if (data.data.kind === 'video') {
+              videoConsumer = consumer;
+            } else if (data.data.kind === 'audio') {
+              audioConsumer = consumer;
+            }
+            
+            // Wait for both video and audio consumers
+            if (!videoConsumer || !audioConsumer) {
+              console.log('⏳ Waiting for both video and audio...');
+              break;
+            }
+            
+            // Display video and audio
+            const stream = new MediaStream();
+            stream.addTrack(videoConsumer.track);
+            stream.addTrack(audioConsumer.track);
+            video.srcObject = stream;
+            
+            // Monitor track state
+            videoConsumer.track.onended = () => {
+              console.log('⚠️ Video track ended');
+              videoStatus.textContent = '⚠️ Track ended - reconnecting...';
+            };
+            
+            videoConsumer.on('trackended', () => {
+              console.log('⚠️ Video consumer track ended');
+            });
+            
+            videoConsumer.on('transportclose', () => {
+              console.log('⚠️ Transport closed');
+              statusDiv.textContent = 'Transport closed - reconnecting...';
+              statusDiv.className = 'connecting';
+            });
+            
+            // Ensure video plays
+            video.play().catch(e => console.error('Play error:', e));
+            
+            statusDiv.textContent = '✅ Đang phát video + audio';
+            statusDiv.className = 'connected';
+            videoStatus.textContent = '✅ Đang phát (có tiếng)';
+            
+            // Stats monitoring
+            setInterval(async () => {
+              if (videoConsumer) {
+                const stats = await videoConsumer.getStats();
+                let info = '';
+                stats.forEach(report => {
+                  if (report.type === 'inbound-rtp') {
+                    info = `Video: ${report.packetsReceived} packets, ${report.packetsLost} lost`;
+                  }
+                });
+                statsSpan.textContent = info;
+              }
+            }, 2000);
+            break;
+        }
+      } catch (error) {
+        console.error('❌ Error:', error);
+        statusDiv.textContent = 'Lỗi: ' + error.message;
+        statusDiv.className = 'error';
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('❌ WebSocket error:', error);
+      wsStatus.textContent = '❌ Lỗi kết nối';
+      statusDiv.textContent = 'Lỗi WebSocket';
+      statusDiv.className = 'error';
+    };
+
+    ws.onclose = () => {
+      console.log('❌ WebSocket closed');
+      wsStatus.textContent = '🔄 Đang kết nối lại...';
+      statusDiv.textContent = 'Mất kết nối - Đang thử lại...';
+      statusDiv.className = 'connecting';
+      
+      // Auto reconnect after 2 seconds
+      setTimeout(() => {
+        console.log('🔄 Reconnecting...');
+        connectWebSocket();
+      }, 2000);
+    };
+  }
+
+  // Video event handlers
+  video.onloadedmetadata = () => {
+    console.log('✅ Video metadata loaded');
+    console.log('📐 Resolution:', video.videoWidth, 'x', video.videoHeight);
+  };
+
+  video.onplay = () => {
+    console.log('▶️ Video playing');
+  };
+
+  video.onerror = (error) => {
+    console.error('❌ Video error:', error);
+    videoStatus.textContent = '❌ Lỗi video';
+  };
+
+  // Start connection
+  connectWebSocket();
+  </script>
+</body>
+</html>
