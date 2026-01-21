@@ -77,7 +77,57 @@ docker-compose down
 Nếu đổi IP EC2, hãy đổi lại DOMAIN cho khớp.
 
 ## Streaming
+
+### Stream từ file video
 - Stream từ PC lên EC2 qua RTP (dùng `video.mp4` local): `./stream-from-pc.sh`.
 - Stream FFmpeg chạy trực tiếp trên EC2 (dùng `~/test-video.mp4`): `./stream.sh`.
+
+### Stream từ nguồn khác
+
+Sử dụng script `stream-custom.sh` để stream từ nhiều nguồn khác nhau:
+
+```bash
+# Stream từ file video khác
+./stream-custom.sh /path/to/your-video.mp4
+
+# Stream từ webcam
+./stream-custom.sh /dev/video0
+
+# Stream từ RTSP camera
+./stream-custom.sh rtsp://192.168.1.100:554/stream
+
+# Stream từ HTTP/HLS
+./stream-custom.sh https://example.com/live/stream.m3u8
+
+# Screen capture (cần chỉnh INPUT_ARGS trong script)
+```
+
+**Hoặc chỉnh sửa lệnh FFmpeg trực tiếp trong script (thay `-i video.mp4` bằng nguồn mới):**
+
+**1. Webcam (Linux/Mac)**
+```bash
+# Linux (V4L2)
+ffmpeg -re -f v4l2 -i /dev/video0 ...
+
+# Mac (AVFoundation)
+ffmpeg -re -f avfoundation -i "0:0" ...
+```
+
+**2. Screen capture**
+```bash
+# Linux (X11)
+ffmpeg -re -f x11grab -i :0.0 ...
+
+# Mac
+ffmpeg -re -f avfoundation -i "1:0" ...
+
+# Windows
+ffmpeg -re -f gdigrab -i desktop ...
+```
+
+**3. Tạo symlink cho file video khác**
+```bash
+ln -sf /path/to/your/video.mp4 video.mp4
+```
 
 Đảm bảo đã set biến môi trường và chuẩn bị media trước khi chạy các script trên.
