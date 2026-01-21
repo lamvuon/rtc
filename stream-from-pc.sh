@@ -7,7 +7,7 @@
 APP_IP="${APP_IP:-${EC2_HOST#*@}}"
 EC2_IP="$APP_IP"
 KEY_FILE="${KEY_FILE:-${HOME}/.ssh/lamvuonshop.pem}"
-REMOTE_DIR="${REMOTE_DIR:-$(pwd)}"
+REMOTE_DIR="${REMOTE_DIR:-/home/ubuntu}"
 
 echo "Using EC2_HOST=$EC2_HOST"
 echo "Using EC2_IP=$EC2_IP"

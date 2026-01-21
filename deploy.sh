@@ -3,7 +3,7 @@
 # Configuration
 : "${EC2_HOST:?EC2_HOST is not set. Please set it in ~/.bashrc}"  # EC2 host must come from the environment
 KEY_FILE="${KEY_FILE:-${HOME}/.ssh/lamvuonshop.pem}"
-REMOTE_DIR="${REMOTE_DIR:-$(pwd)}"  # Deploy to a directory matching the current path
+REMOTE_DIR="${REMOTE_DIR:-/home/ubuntu}"  # Remote directory on EC2
 
 APP_IP="${APP_IP:-${EC2_HOST#*@}}"
 
@@ -12,8 +12,9 @@ echo "Using EC2_HOST=$EC2_HOST"
 echo "Using REMOTE_DIR=$REMOTE_DIR"
 echo "Using APP_IP=$APP_IP"
 
-# 1. Copy files to EC2
+# 1. Create remote directory and copy files to EC2
 echo "📦 Copying files to EC2..."
+ssh -i $KEY_FILE $EC2_HOST "mkdir -p $REMOTE_DIR"
 rsync -avz -e "ssh -i $KEY_FILE" \
   --filter=':- .gitignore' \
   --exclude '.git' \

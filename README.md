@@ -9,6 +9,7 @@ echo 'export EMAIL=your-email@example.com' >> ~/.bashrc
 
 echo 'export EC2_HOST=ubuntu@your-public-ip-or-host' >> ~/.bashrc
 echo 'export APP_IP=your-public-ip' >> ~/.bashrc
+echo 'export REMOTE_DIR=/home/ubuntu' >> ~/.bashrc
 
 source ~/.bashrc
 ```
