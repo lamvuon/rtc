@@ -39,6 +39,17 @@ npm start          # chạy server (port 3000)
 - Chỉ rsync code: `./push.sh`.
 - Cấu hình Nginx + SSL từ máy local: `./run-setup-nginx-ssl-remote.sh <domain> <email>` (mặc định lấy từ env nếu không truyền).
 
+### Gợi ý domain với sslip.io
+- Nếu chưa có domain, có thể dùng tạm sslip.io: với IP `A.B.C.D`, dùng domain `A-B-C-D.sslip.io`.
+- Ví dụ IP `1.2.3.4` → domain `1-2-3-4.sslip.io`.
+- Cập nhật env:
+	```bash
+	echo 'export DOMAIN=1-2-3-4.sslip.io' >> ~/.bashrc
+	source ~/.bashrc
+	```
+
+Nếu đổi IP EC2, hãy đổi lại DOMAIN cho khớp.
+
 ## Streaming
 - Stream từ PC lên EC2 qua RTP (dùng `video.mp4` local): `./stream-from-pc.sh`.
 - Stream FFmpeg chạy trực tiếp trên EC2 (dùng `~/test-video.mp4`): `./stream.sh`.

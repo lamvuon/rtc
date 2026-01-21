@@ -6,8 +6,9 @@
 set -e  # Exit on error
 
 # Configuration
-DOMAIN="${1:-${DOMAIN}}"  # Domain hoặc IP
-EMAIL="${2:-${EMAIL}}"  # Email cho Let's Encrypt
+# Nếu không truyền tham số và không có DOMAIN env, sẽ dùng APP_IP để tạo domain sslip.io (vd: 1.2.3.4 -> 1-2-3-4.sslip.io)
+DOMAIN="${1:-${DOMAIN:-$( [ -n "${APP_IP}" ] && echo "${APP_IP//./-}.sslip.io" )}}"
+EMAIL="${2:-${EMAIL:-admin@lamvuon.shop}}"  # Đổi thành email thật để Let's Encrypt chấp nhận
 APP_PORT="3000"  # Port của Node.js app
 
 echo "🚀 Setting up Nginx with SSL for: $DOMAIN"
