@@ -1,0 +1,46 @@
+# Node modules
+node_modules/
+npm-debug.log*
+
+# Git
+.git/
+.gitignore
+
+# SSH keys
+*.pem
+.ssh/
+
+# Environment files
+.env
+.env.*
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Deployment scripts
+deploy.sh
+push.sh
+stream.sh
+stream-from-pc.sh
+setup-nginx-ssl.sh
+run-setup-nginx-ssl-remote.sh
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Large video files (optional - comment out if you want to include)
+# *.mp4
+# *.avi
+# *.mov

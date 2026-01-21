@@ -30,10 +30,35 @@ Sau khi thay đổi, mở terminal mới hoặc chạy `source ~/.bashrc` trư�
 Thay URL video nếu bạn muốn dùng nguồn khác; chỉ cần giữ đúng tên file theo từng script.
 
 ## Cài đặt và chạy server
+
+### Chạy trực tiếp với Node.js
 ```bash
 npm install        # hoặc pnpm install / yarn install
 npm start          # chạy server (port 3000)
 ```
+
+### Chạy với Docker
+```bash
+# Build và chạy với docker-compose
+docker-compose up -d
+
+# Hoặc build và chạy manual
+docker build -t web-rtc-mediasoup .
+docker run -d \
+  -p 3000:3000 \
+  -p 10000-10100:10000-10100/udp \
+  -e APP_IP=your-public-ip \
+  --name web-rtc \
+  web-rtc-mediasoup
+
+# Xem logs
+docker logs -f web-rtc
+
+# Dừng container
+docker-compose down
+```
+
+**Lưu ý**: Khi chạy Docker trên server, set `APP_IP` trong file `.env` hoặc docker-compose.yml thành IP public của server.
 
 ## Deploy / đồng bộ code
 - Deploy đầy đủ: `./deploy.sh` (rsync + cài đặt + pm2).

@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  web-rtc:
+    build: .
+    container_name: web-rtc-mediasoup
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      # WebRTC/RTP ports
+      - "10000-10100:10000-10100/udp"
+      - "10000-10100:10000-10100/tcp"
+    environment:
+      - NODE_ENV=production
+      - APP_IP=${APP_IP:-localhost}
+    volumes:
+      # Mount video file if streaming from container
+      - ./video.mp4:/app/video.mp4:ro
+      - ./test-video.mp4:/app/test-video.mp4:ro
+    networks:
+      - webrtc-network
+
+networks:
+  webrtc-network:
+    driver: bridge
