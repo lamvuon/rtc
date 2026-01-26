@@ -11,7 +11,7 @@ fi
 # Configuration
 : "${EC2_HOST:?EC2_HOST is not set. Please set it in .env}"  # EC2 host must come from .env
 KEY_FILE="${KEY_FILE:-${HOME}/.ssh/cert.pem}"
-REMOTE_DIR="${REMOTE_DIR:-/home/ubuntu}"  # Remote directory on EC2
+REMOTE_DIR="${REMOTE_DIR:-/home/ubuntu/web-rtc}"  # Remote directory on EC2
 
 APP_IP="${APP_IP:-${EC2_HOST#*@}}"
 

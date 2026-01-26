@@ -10,7 +10,9 @@ fi
 
 : "${EC2_HOST:?EC2_HOST is not set. Please set it in .env}"
 APP_IP="${APP_IP:-${EC2_HOST#*@}}"
-KEY_FILE="${KEY_FILE:-${HOME}/.ssh/lamvuonshop.pem}"
+KEY_FILE="${KEY_FILE:-${HOME}/.ssh/ec2.pem}"
+
+cd ${REMOTE_DIR:-/home/ubuntu/web-rtc}
 
 echo "Using EC2_HOST=$EC2_HOST"
 echo "Using APP_IP=$APP_IP"
@@ -51,7 +53,7 @@ sleep 1
 
 # Stream with audio (loop forever)
 while true; do
-  ffmpeg -re -i test-video.mp4 \
+  ffmpeg -re -i ec2.mp4 \
     -an \
     -c:v libx264 \
     -profile:v baseline \
@@ -72,7 +74,7 @@ while true; do
   
   VIDEO_PID=\$!
   
-  ffmpeg -re -i test-video.mp4 \
+  ffmpeg -re -i ec2.mp4 \
     -vn \
     -c:a libopus \
     -b:a 128k \
