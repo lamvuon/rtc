@@ -6,9 +6,9 @@
 set -e  # Exit on error
 
 # Configuration file path
-CONFIG_FILE="$(dirname "$0")/stream.config"
+CONFIG_FILE="$(dirname "$0")/.env"
 
-# Load configuration from stream.config if exists
+# Load configuration from .env if exists
 if [ -f "$CONFIG_FILE" ]; then
     source "$CONFIG_FILE"
 fi

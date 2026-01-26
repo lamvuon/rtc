@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # Configuration file path
-CONFIG_FILE="$(dirname "$0")/stream.config"
+CONFIG_FILE="$(dirname "$0")/.env"
 
-# Load configuration from stream.config if exists
+# Load configuration from .env if exists
 if [ -f "$CONFIG_FILE" ]; then
-    source "$CONFIG_FILE"
+  source "$CONFIG_FILE"
 fi
 
 # Configuration
-: "${EC2_HOST:?EC2_HOST is not set. Please set it in stream.config}"  # EC2 host must come from stream.config
+: "${EC2_HOST:?EC2_HOST is not set. Please set it in .env}"  # EC2 host must come from .env
 KEY_FILE="${KEY_FILE:-${HOME}/.ssh/cert.pem}"
 REMOTE_DIR="${REMOTE_DIR:-/home/ubuntu}"  # Remote directory on EC2
 

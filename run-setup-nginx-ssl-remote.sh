@@ -5,14 +5,14 @@
 set -e
 
 # Configuration file path
-CONFIG_FILE="$(dirname "$0")/stream.config"
+CONFIG_FILE="$(dirname "$0")/.env"
 
-# Load configuration from stream.config if exists
+# Load configuration from .env if exists
 if [ -f "$CONFIG_FILE" ]; then
-    source "$CONFIG_FILE"
+  source "$CONFIG_FILE"
 fi
 
-: "${EC2_HOST:?EC2_HOST is not set. Please set it in stream.config}"
+: "${EC2_HOST:?EC2_HOST is not set. Please set it in .env}"
 KEY_FILE="${KEY_FILE:-${HOME}/.ssh/lamvuonshop.pem}"
 REMOTE_DIR="${REMOTE_DIR:-/home/ubuntu}"
 APP_IP="${APP_IP:-${EC2_HOST#*@}}"
