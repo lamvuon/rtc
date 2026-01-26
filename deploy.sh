@@ -1,8 +1,16 @@
 #!/bin/bash
 
+# Configuration file path
+CONFIG_FILE="$(dirname "$0")/stream.config"
+
+# Load configuration from stream.config if exists
+if [ -f "$CONFIG_FILE" ]; then
+    source "$CONFIG_FILE"
+fi
+
 # Configuration
-: "${EC2_HOST:?EC2_HOST is not set. Please set it in ~/.bashrc}"  # EC2 host must come from the environment
-KEY_FILE="${KEY_FILE:-${HOME}/.ssh/lamvuonshop.pem}"
+: "${EC2_HOST:?EC2_HOST is not set. Please set it in stream.config}"  # EC2 host must come from stream.config
+KEY_FILE="${KEY_FILE:-${HOME}/.ssh/cert.pem}"
 REMOTE_DIR="${REMOTE_DIR:-/home/ubuntu}"  # Remote directory on EC2
 
 APP_IP="${APP_IP:-${EC2_HOST#*@}}"

@@ -1,0 +1,12 @@
+# Configuration for deployment and streaming
+# Copy this file and update with your actual values
+
+# EC2 Configuration
+EC2_HOST="ubuntu@your-ec2-ip-or-domain"
+KEY_FILE="${HOME}/.ssh/ec2.pem"
+REMOTE_DIR="/home/ubuntu"
+APP_IP="your-ec2-ip"
+DOMAIN="ec2.sslip.io"
+EMAIL="ec2@gmail.com"
+
+# Add other configuration variables below as needed
