@@ -21,7 +21,15 @@ app.use(express.static('.'));
 const httpServer = createServer(app);
 const wss = new WebSocketServer({ server: httpServer });
 
-const worker = await mediasoup.createWorker();
+const worker = await mediasoup.createWorker({
+  rtcMinPort: 20000,
+  rtcMaxPort: 40000,
+  logLevel: 'warn',
+  logTags: ['info']
+});
+
+console.log("✅ Worker created with RTP port range: 20000-40000");
+
 const router = await worker.createRouter({
   mediaCodecs: [
     {
