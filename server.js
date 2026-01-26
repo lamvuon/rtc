@@ -2,12 +2,8 @@ import express from "express";
 import { createServer } from "http";
 import { WebSocketServer } from "ws";
 import mediasoup from "mediasoup";
-import dotenv from "dotenv";
 
-dotenv.config();
-
-const APP_IP = process.env.APP_IP || "0.0.0.0";
-const APP_PORT = Number(process.env.APP_PORT || 3000);
+const APP_IP = "3.27.239.169"; // Announce fixed public IP
 
 const app = express();
 
@@ -239,6 +235,6 @@ wss.on("connection", (ws) => {
   });
 });
 
-httpServer.listen(APP_PORT, () => {
-  console.log(`🚀 HTTP Server listening on port ${APP_PORT}`);
+httpServer.listen(3000, () => {
+  console.log("🚀 HTTP Server listening on port 3000");
 });
