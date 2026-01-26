@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 🎯 CÁCH CHUẨN: Stream từ PC → EC2 bằng RTP
-# Yêu cầu: video.mp4 phải có sẵn trên PC
+# Yêu cầu: pc.mp4 phải có sẵn trên PC
 
 # Load environment from .env file
 ENV_FILE="$(dirname "$0")/.env"
@@ -42,15 +42,15 @@ echo "✅ Video RTP Port: $VIDEO_PORT"
 echo "✅ Audio RTP Port: $AUDIO_PORT"
 echo ""
 echo "🎬 Stream từ PC → EC2 ($EC2_IP)"
-echo "📹 Đảm bảo file video.mp4 có sẵn trong thư mục hiện tại"
+echo "📹 Đảm bảo file pc.mp4 có sẵn trong thư mục hiện tại"
 echo "🌐 Mở browser: http://$EC2_IP"
 echo ""
 
 # BƯỚC 3: Stream từ PC → EC2 bằng RTP
 # Kiểm tra file video
-if [ ! -f "video.mp4" ]; then
-  echo "❌ Không tìm thấy file video.mp4 trong thư mục hiện tại!"
-  echo "💡 Tạo symlink hoặc copy video của bạn thành video.mp4"
+if [ ! -f "pc.mp4" ]; then
+  echo "❌ Không tìm thấy file pc.mp4 trong thư mục hiện tại!"
+  echo "💡 Tạo symlink hoặc copy video của bạn thành pc.mp4"
   exit 1
 fi
 
@@ -63,7 +63,7 @@ pkill -9 ffmpeg 2>/dev/null || true
 sleep 1
 
 # Stream VIDEO từ PC → EC2 (loop vô hạn)
-ffmpeg -re -stream_loop -1 -i video.mp4 \
+ffmpeg -re -stream_loop -1 -i pc.mp4 \
   -an \
   -c:v libx264 \
   -profile:v baseline \
@@ -85,7 +85,7 @@ ffmpeg -re -stream_loop -1 -i video.mp4 \
 VIDEO_PID=$!
 
 # Stream AUDIO từ PC → EC2 (loop vô hạn)
-ffmpeg -re -stream_loop -1 -i video.mp4 \
+ffmpeg -re -stream_loop -1 -i pc.mp4 \
   -vn \
   -c:a libopus \
   -b:a 128k \
