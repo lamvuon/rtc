@@ -63,7 +63,7 @@ fi
 # Start/Restart the application
 echo "🚀 Starting application with PM2..."
 pm2 delete web-rtc 2>/dev/null || true
-pm2 start server.js --name web-rtc
+pm2 start server.js --name web-rtc --env production --update-env
 pm2 save
 pm2 startup | tail -n 1 | sudo bash
 
