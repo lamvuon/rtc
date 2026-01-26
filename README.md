@@ -154,6 +154,37 @@ Hoặc dùng script tiện lợi:
 # .env cần có EC2_HOST (vd: ubuntu@1.2.3.4), optional KEY_FILE
 ./stream-rtsp.sh rtsp://user:pass@CAMERA_HOST:PORT/path
 ```
+
+### Từ Android qua ADB
+- Cách 1 (đơn giản, có giới hạn ~3 phút mỗi lần): dùng `adb screenrecord` và auto-restart.
+```bash
+# Chạy script mẫu
+./example/stream-android-adb.sh
+
+# Biến tuỳ chọn
+# ADB_SERIAL: serial thiết bị (nếu có nhiều thiết bị)
+# SIZE: độ phân giải (mặc định 1280x720)
+# BITRATE: bitrate video bps (mặc định 4000000)
+```
+Script sẽ:
+- Lấy RTP ports từ log server
+- Stream video từ `adb exec-out screenrecord` → FFmpeg → RTP (PT=96, SSRC=11111111)
+- Tạo audio im lặng Opus → RTP (PT=97, SSRC=22222222) để trình duyệt luôn có track audio
+- Tự động restart sau mỗi lần `screenrecord` kết thúc
+
+- Cách 2 (ổn định, liên tục): dùng `scrcpy` và FFmpeg.
+  - Khuyến nghị: `scrcpy` + `v4l2loopback` để tạo virtual camera, FFmpeg đọc từ `/dev/videoX` và đẩy RTP.
+  - Chạy script mẫu:
+    ```bash
+    # Yêu cầu: scrcpy, v4l2loopback, ffmpeg
+    # Tuỳ chọn: ADB_SERIAL, V4L2_DEV (mặc định /dev/video10), BITRATE, FPS, SIZE
+    ./example/stream-android-scrcpy.sh
+    ```
+  - Âm thanh: dùng `anullsrc` (im lặng) hoặc thêm `sndcpy` để lấy audio thật từ thiết bị.
+
+Lưu ý:
+- `adb screenrecord` có giới hạn thời gian; script đã auto-restart.
+- Nếu cần RTSP, dùng app Android xuất RTSP (ví dụ IP Webcam) và chạy `./stream-rtsp.sh ...`.
 ```
 
 ---
