@@ -1,6 +1,14 @@
 #!/bin/bash
 
-: "${EC2_HOST:?EC2_HOST is not set. Please set it in ~/.bashrc}"
+# Configuration file path
+CONFIG_FILE="$(dirname "$0")/stream.config"
+
+# Load configuration from stream.config if exists
+if [ -f "$CONFIG_FILE" ]; then
+    source "$CONFIG_FILE"
+fi
+
+: "${EC2_HOST:?EC2_HOST is not set. Please set it in stream.config}"
 APP_IP="${APP_IP:-${EC2_HOST#*@}}"
 KEY_FILE="${KEY_FILE:-${HOME}/.ssh/lamvuonshop.pem}"
 

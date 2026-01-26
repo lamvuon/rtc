@@ -5,11 +5,19 @@
 
 set -e  # Exit on error
 
+# Configuration file path
+CONFIG_FILE="$(dirname "$0")/stream.config"
+
+# Load configuration from stream.config if exists
+if [ -f "$CONFIG_FILE" ]; then
+    source "$CONFIG_FILE"
+fi
+
 # Configuration
 # Nếu không truyền tham số và không có DOMAIN env, sẽ dùng APP_IP để tạo domain sslip.io (vd: 1.2.3.4 -> 1-2-3-4.sslip.io)
 DOMAIN="${1:-${DOMAIN:-$( [ -n "${APP_IP}" ] && echo "${APP_IP//./-}.sslip.io" )}}"
-EMAIL="${2:-${EMAIL:-admin@lamvuon.shop}}"  # Đổi thành email thật để Let's Encrypt chấp nhận
-APP_PORT="3000"  # Port của Node.js app
+EMAIL="${2:-${EMAIL:-admin@ec2.shop}}"  # Đổi thành email thật để Let's Encrypt chấp nhận
+APP_PORT="${APP_PORT:-3000}"  # Port của Node.js app
 
 echo "🚀 Setting up Nginx with SSL for: $DOMAIN"
 echo "📧 Email: $EMAIL"

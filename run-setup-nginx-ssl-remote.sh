@@ -4,12 +4,20 @@
 
 set -e
 
-: "${EC2_HOST:?EC2_HOST is not set. Please set it in ~/.bashrc}"
+# Configuration file path
+CONFIG_FILE="$(dirname "$0")/stream.config"
+
+# Load configuration from stream.config if exists
+if [ -f "$CONFIG_FILE" ]; then
+    source "$CONFIG_FILE"
+fi
+
+: "${EC2_HOST:?EC2_HOST is not set. Please set it in stream.config}"
 KEY_FILE="${KEY_FILE:-${HOME}/.ssh/lamvuonshop.pem}"
 REMOTE_DIR="${REMOTE_DIR:-/home/ubuntu}"
 APP_IP="${APP_IP:-${EC2_HOST#*@}}"
 DOMAIN="${1:-${DOMAIN:-$( [ -n "${APP_IP}" ] && echo "${APP_IP//./-}.sslip.io" )}}"
-EMAIL="${2:-admin@lamvuon.shop}"
+EMAIL="${2:-${EMAIL:-admin@lamvuon.shop}}"
   
 echo "📦 Syncing scripts to EC2..."
 echo "Using EC2_HOST=$EC2_HOST"
