@@ -8,5 +8,6 @@ REMOTE_DIR="/home/ubuntu"
 APP_IP="your-ec2-ip"
 DOMAIN="ec2.sslip.io"
 EMAIL="ec2@gmail.com"
+APP_PORT="3000"
 
 # Add other configuration variables below as needed
