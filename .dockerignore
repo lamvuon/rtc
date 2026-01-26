@@ -20,6 +20,7 @@ docker-compose.yml
 .dockerignore
 
 # Deployment scripts
+bash/*
 deploy.sh
 push.sh
 stream.sh
