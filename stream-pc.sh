@@ -3,11 +3,19 @@
 # 🎯 CÁCH CHUẨN: Stream từ PC → EC2 bằng RTP
 # Yêu cầu: video.mp4 phải có sẵn trên PC
 
-: "${EC2_HOST:?EC2_HOST is not set. Please set it in ~/.bashrc}"
+# Load environment from .env file
+ENV_FILE="$(dirname "$0")/.env"
+if [ ! -f "$ENV_FILE" ]; then
+  echo "❌ File .env không tìm thấy tại $ENV_FILE"
+  exit 1
+fi
+source "$ENV_FILE"
+
+: "${EC2_HOST:?EC2_HOST is not set. Please set it in .env}"
 APP_IP="${APP_IP:-${EC2_HOST#*@}}"
 EC2_IP="$APP_IP"
-KEY_FILE="${KEY_FILE:-${HOME}/.ssh/lamvuonshop.pem}"
-REMOTE_DIR="${REMOTE_DIR:-/home/ubuntu}"
+KEY_FILE="${KEY_FILE:-${HOME}/.ssh/ec2.pem}"
+REMOTE_DIR="${REMOTE_DIR:-/home/ubuntu/web-rtc}"
 
 echo "Using EC2_HOST=$EC2_HOST"
 echo "Using EC2_IP=$EC2_IP"
