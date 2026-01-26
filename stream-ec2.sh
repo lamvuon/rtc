@@ -11,12 +11,12 @@ fi
 : "${EC2_HOST:?EC2_HOST is not set. Please set it in .env}"
 APP_IP="${APP_IP:-${EC2_HOST#*@}}"
 KEY_FILE="${KEY_FILE:-${HOME}/.ssh/ec2.pem}"
-
-cd ${REMOTE_DIR:-/home/ubuntu/web-rtc}
+REMOTE_DIR="${REMOTE_DIR:-/home/ubuntu/web-rtc}"
 
 echo "Using EC2_HOST=$EC2_HOST"
 echo "Using APP_IP=$APP_IP"
 echo "Using KEY_FILE=$KEY_FILE"
+echo "Using REMOTE_DIR=$REMOTE_DIR"
 
 # Restart server to get fresh RTP ports
 echo "🔄 Restarting server to get RTP ports..."
@@ -42,7 +42,12 @@ echo "🎬 Đang stream FFmpeg với audio đến EC2..."
 
 # Run FFmpeg on EC2
 ssh -i "$KEY_FILE" "$EC2_HOST" << EOF
-cd ~
+cd "$REMOTE_DIR"
+if [ ! -f ec2.mp4 ]; then
+  echo "❌ Missing ec2.mp4 in $REMOTE_DIR"
+  ls -lh
+  exit 1
+fi
 echo "📹 Starting FFmpeg stream to ports Video:$VIDEO_PORT Audio:$AUDIO_PORT"
 echo "🌐 Open http://$APP_IP in your browser"
 echo ""
