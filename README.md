@@ -136,6 +136,24 @@ ffmpeg -f x11grab -i :0.0 \
   'rtp://SERVER_IP:20000' \
   -c:a libopus \
   'rtp://SERVER_IP:20001'
+
+### Từ RTSP Camera/Source
+```bash
+# Re-encode to H264 baseline + Opus to match server
+ffmpeg -rtsp_transport tcp -i rtsp://user:pass@CAMERA_HOST:PORT/path \
+  -f rtp \
+  -c:v libx264 -profile:v baseline -level 3.1 -tune zerolatency \
+  'rtp://SERVER_IP:20000' \
+  -c:a libopus -ar 48000 -ac 2 \
+  'rtp://SERVER_IP:20001'
+```
+
+Hoặc dùng script tiện lợi:
+
+```bash
+# .env cần có EC2_HOST (vd: ubuntu@1.2.3.4), optional KEY_FILE
+./stream-rtsp.sh rtsp://user:pass@CAMERA_HOST:PORT/path
+```
 ```
 
 ---
