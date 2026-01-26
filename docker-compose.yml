@@ -7,14 +7,18 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
-      # WebRTC/RTP ports
-      - "10000-10100:10000-10100/udp"
-      - "10000-10100:10000-10100/tcp"
+      # WebRTC/RTP ports (matching mediasoup config in server.js)
+      - "20000-40000:20000-40000/udp"
+      - "20000-40000:20000-40000/tcp"
     environment:
       - NODE_ENV=production
       - APP_IP=${APP_IP:-localhost}
+      - APP_PORT=${APP_PORT:-3000}
+      - AUTO_STREAM=${AUTO_STREAM:-true}
+      - VIDEO_FILE=${VIDEO_FILE:-ec2.mp4}
     volumes:
-      # Mount video file if streaming from container
+      # Mount video file for streaming
+      - ./ec2.mp4:/app/ec2.mp4:ro
       - ./video.mp4:/app/video.mp4:ro
       - ./test-video.mp4:/app/test-video.mp4:ro
     networks:

@@ -1,7 +1,7 @@
 FROM node:20-alpine
 
-# Install FFmpeg for streaming
-RUN apk add --no-cache ffmpeg
+# Install FFmpeg and bash for streaming
+RUN apk add --no-cache ffmpeg bash
 
 # Set working directory
 WORKDIR /app
@@ -17,14 +17,17 @@ COPY . .
 
 # Expose ports
 # 3000: HTTP server
-# 10000-10100: WebRTC/RTP ports
+# 20000-40000: WebRTC/RTP ports (matching mediasoup config)
 EXPOSE 3000
-EXPOSE 10000-10100/udp
-EXPOSE 10000-10100/tcp
+EXPOSE 20000-40000/udp
+EXPOSE 20000-40000/tcp
 
 # Set environment variables
 ENV NODE_ENV=production
 ENV APP_IP=0.0.0.0
 
+# Make startup script executable
+RUN chmod +x /app/docker-start.sh || true
+
 # Start the application
-CMD ["npm", "start"]
+CMD ["/app/docker-start.sh"]
