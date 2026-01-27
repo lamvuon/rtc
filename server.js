@@ -152,15 +152,15 @@ wss.on("connection", (ws) => {
         break;
 
       case "createTransport":
-        // Create a new WebRTC transport for this client
+        // Create a new WebRTC transport for this client (TCP-only)
         clientTransport = await router.createWebRtcTransport({
           listenIps: [{
             ip: "0.0.0.0",
             announcedIp: APP_IP
           }],
-          enableUdp: true,
+          enableUdp: false,
           enableTcp: true,
-          preferUdp: true
+          preferUdp: false
         });
         
         console.log("✅ Created transport for client:", clientTransport.id);

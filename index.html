@@ -272,18 +272,21 @@
             
             // Monitor track state
             videoConsumer.track.onended = () => {
-              console.log('⚠️ Video track ended');
+              console.log('⚠️ Video track ended - reloading page in 2s');
               videoStatus.textContent = '⚠️ Track ended - reconnecting...';
+              setTimeout(() => window.location.reload(), 2000);
             };
             
             videoConsumer.on('trackended', () => {
-              console.log('⚠️ Video consumer track ended');
+              console.log('⚠️ Video consumer track ended - reloading');
+              setTimeout(() => window.location.reload(), 2000);
             });
             
             videoConsumer.on('transportclose', () => {
-              console.log('⚠️ Transport closed');
+              console.log('⚠️ Transport closed - reloading');
               statusDiv.textContent = 'Transport closed - reconnecting...';
               statusDiv.className = 'connecting';
+              setTimeout(() => window.location.reload(), 2000);
             });
             
             // Ensure video plays (may require user gesture if audio present)
@@ -350,6 +353,14 @@
     console.error('❌ Video error:', error);
     videoStatus.textContent = '❌ Lỗi video';
   };
+
+  // Auto-reload if no video after 10 seconds (handles server restart case)
+  setTimeout(() => {
+    if (!video.srcObject || video.videoWidth === 0) {
+      console.log('⚠️ No video after 10s, reloading...');
+      window.location.reload();
+    }
+  }, 10000);
 
   // Start connection
   connectWebSocket();

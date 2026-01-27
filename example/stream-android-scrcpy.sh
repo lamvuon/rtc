@@ -33,12 +33,12 @@ EC2_IP="$APP_IP"
 KEY_FILE="${KEY_FILE:-${HOME}/.ssh/ec2.pem}"
 REMOTE_DIR="${REMOTE_DIR:-/home/ubuntu/web-rtc}"
 
-# Defaults
+# Defaults - Ultra low latency mode
 SERIAL="${ADB_SERIAL}"  # may be empty
 V4L2_DEV="${V4L2_DEV:-/dev/video10}"
-BITRATE="${BITRATE:-8000000}"
-FPS="${FPS:-60}"
-SIZE="${SIZE:-1280}"
+BITRATE="${BITRATE:-2000000}"  # 2Mbps (reduced from 3Mbps)
+FPS="${FPS:-20}"              # 20fps (reduced from 25fps)
+SIZE="${SIZE:-480}"           # 480p (reduced from 720p)
 
 # Check tools
 for cmd in adb scrcpy ffmpeg; do
@@ -105,28 +105,38 @@ pkill -9 ffmpeg 2>/dev/null || true
 pkill -9 scrcpy 2>/dev/null || true
 sleep 1
 
-# Start scrcpy pumping frames to v4l2 device
+# Start scrcpy pumping frames to v4l2 device (with display window)
 echo "🚀 Starting scrcpy → $V4L2_DEV"
-SCRCPY_CMD=(scrcpy --no-window --serial "$SERIAL" --v4l2-sink "$V4L2_DEV" --bit-rate "$BITRATE" --max-fps "$FPS" --max-size "$SIZE")
+SCRCPY_CMD=(scrcpy --serial "$SERIAL" --v4l2-sink "$V4L2_DEV" --bit-rate "$BITRATE" --max-fps "$FPS" --max-size "$SIZE")
 "${SCRCPY_CMD[@]}" &
 SCRCPY_PID=$!
-sleep 1
 
-# Start AUDIO (silence) → Opus → RTP
+# Wait for scrcpy to initialize v4l2 device (increased delay)
+echo "⏳ Waiting for v4l2 device initialization..."
+sleep 3
+
+# Verify v4l2 device is ready
+if ! v4l2-ctl --device="$V4L2_DEV" --all >/dev/null 2>&1; then
+  echo "⚠️ v4l2 device not ready yet, waiting 2 more seconds..."
+  sleep 2
+fi
+
+# Start AUDIO (silence) → Opus → RTP (minimal bitrate)
 ffmpeg -f lavfi -i anullsrc=r=48000:cl=stereo \
-  -c:a libopus -b:a 128k -ar 48000 -ac 2 \
+  -c:a libopus -b:a 32k -ar 48000 -ac 2 \
   -payload_type 97 -ssrc 22222222 \
   -f rtp "rtp://$EC2_IP:$AUDIO_PORT?pkt_size=1200" &
 AUDIO_PID=$!
 
-# Start VIDEO encoding from v4l2 → H264 baseline → RTP
+# Start VIDEO encoding from v4l2 → H264 baseline → RTP (ultra low latency)
 ffmpeg -f v4l2 -i "$V4L2_DEV" \
   -an \
-  -c:v libx264 -profile:v baseline -level 3.1 \
-  -preset veryfast -tune zerolatency \
-  -g 30 -keyint_min 30 -sc_threshold 0 \
-  -b:v 2500k -maxrate 2500k -bufsize 5000k \
+  -c:v libx264 -profile:v baseline -level 3.0 \
+  -preset ultrafast -tune zerolatency \
+  -g 60 -keyint_min 20 -sc_threshold 0 \
+  -b:v 600k -maxrate 800k -bufsize 1000k \
   -pix_fmt yuv420p \
+  -threads 2 \
   -payload_type 96 -ssrc 11111111 \
   -f rtp "rtp://$EC2_IP:$VIDEO_PORT?pkt_size=1200" &
 VIDEO_PID=$!

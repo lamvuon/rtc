@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configuration file path
-CONFIG_FILE="$(dirname "$0")/.env"
+CONFIG_FILE="$(dirname "$0")/../.env"
 
 # Load configuration from .env if exists
 if [ -f "$CONFIG_FILE" ]; then

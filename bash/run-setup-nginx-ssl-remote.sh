@@ -5,7 +5,7 @@
 set -e
 
 # Configuration file path
-CONFIG_FILE="$(dirname "$0")/.env"
+CONFIG_FILE="$(dirname "$0")/../.env"
 
 # Load configuration from .env if exists
 if [ -f "$CONFIG_FILE" ]; then
@@ -27,7 +27,7 @@ ssh -i $KEY_FILE $EC2_HOST "mkdir -p $REMOTE_DIR"
 rsync -avz -e "ssh -i $KEY_FILE" \
   --filter=':- .gitignore' \
   --exclude '.git' \
-  ./setup-nginx-ssl.sh $EC2_HOST:$REMOTE_DIR/
+  $(dirname "$0")/setup-nginx-ssl.sh $EC2_HOST:$REMOTE_DIR/
 
 echo "🔗 Running setup-nginx-ssl.sh on EC2..."
 ssh -i $KEY_FILE $EC2_HOST "cd $REMOTE_DIR && chmod +x setup-nginx-ssl.sh && ./setup-nginx-ssl.sh $DOMAIN $EMAIL"

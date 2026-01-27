@@ -4,7 +4,7 @@
 # Yêu cầu: pc.mp4 phải có sẵn trên PC
 
 # Load environment from .env file
-ENV_FILE="$(dirname "$0")/.env"
+ENV_FILE="$(dirname "$0")/../.env"
 if [ ! -f "$ENV_FILE" ]; then
   echo "❌ File .env không tìm thấy tại $ENV_FILE"
   exit 1
